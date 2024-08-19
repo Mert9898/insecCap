@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from scanner import scan_file
-from real_time_monitor import start_real_time_monitor
 
 # Path to the virus definition database
 SIGNATURE_DB_PATH = 'virus_definitions.db'
