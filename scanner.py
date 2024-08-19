@@ -1,14 +1,25 @@
+import sqlite3
 import hashlib
+import os
 
-def get_file_hash(file_path):
-    """Compute the hash of a file."""
-    hash_func = hashlib.sha256()
-    with open(file_path, 'rb') as f:
-        while chunk := f.read(8192):
-            hash_func.update(chunk)
-    return hash_func.hexdigest()
+def create_database_if_not_exists(db_path):
+    if not os.path.exists(db_path):
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute('CREATE TABLE IF NOT EXISTS signatures (hash TEXT PRIMARY KEY)')
+        conn.commit()
+        conn.close()
+        print(f"Database created at {db_path}")
 
-def scan_file(file_path, signature_db):
-    """Scan a file against a database of known signatures."""
-    file_hash = get_file_hash(file_path)
-    return file_hash in signature_db
+def load_signature_db(db_path):
+    create_database_if_not_exists(db_path)
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    signatures = set(row[0] for row in cursor.execute('SELECT hash FROM signatures'))
+    conn.close()
+    return signatures
+
+def scan_file(filename, signature_db):
+    with open(filename, 'rb') as f:
+        file_hash = hashlib.sha256(f.read()).hexdigest()
+    return file_hash not in signature_db
